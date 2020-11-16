@@ -19,15 +19,18 @@ logger = logging.getLogger(__name__)
 
 
 def get_datasets_metadata(url, downloader):
-    downloader.download(url)
-    return downloader.get_json()
+    response = downloader.download(url)
+    return response.json()
 
 
 def generate_dataset(metadata):
     title = metadata['DatasetTitle']
+    if metadata['Total'] == 0:
+        logger.warning(f'Ignoring dataset: {title} which has no resources!')
+        return None
     logger.info(f'Creating dataset: {title}')
     dataset = Dataset({
-        'name': slugify(title),
+        'name': slugify(title[:99]),
         'title': title,
         'notes': f'{title}  \n{metadata["DatasetDescription"]}',
         'dataset_source': metadata['Source'],
@@ -44,11 +47,8 @@ def generate_dataset(metadata):
     organization = Organization.autocomplete(metadata['Contributor'])
     dataset.set_organization(organization[0]['id'])
     dataset.set_subnational(True)
-    for location in metadata['Location']:
-        countryiso, _ = Country.get_iso3_country_code_fuzzy(location.strip())
-        dataset.add_country_location(countryiso)
-    for tag in metadata['Tags']:
-        dataset.add_tag(tag.strip())
+    dataset.add_country_locations(metadata['Location'])
+    dataset.add_tags(metadata['Tags'])
 
     for resource_metadata in metadata['Resources']:
         resourcedata = {
