@@ -17,7 +17,7 @@ from cods import get_datasets_metadata, generate_dataset
 
 logger = logging.getLogger(__name__)
 
-lookup = 'hdx-scraper-acled'
+lookup = 'hdx-scraper-cods'
 
 
 def main():
