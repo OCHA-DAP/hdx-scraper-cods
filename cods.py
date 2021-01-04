@@ -38,7 +38,7 @@ def generate_dataset(metadata):
     dataset = Dataset({
         'name': slugify(title[:99]),
         'title': title,
-        'notes': f'{title}  \n{metadata["DatasetDescription"]}',
+        'notes': metadata['DatasetDescription'],
         'dataset_source': metadata['Source'],
         'methodology': metadata['Methodology'],
         'methodology_other': metadata['Methodology_Other'],
