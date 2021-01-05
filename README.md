@@ -1,5 +1,5 @@
 ### Collector for COD Datasets
-[![Build Status](https://travis-ci.org/OCHA-DAP/hdx-scraper-cods.svg?branch=master&ts=1)](https://travis-ci.org/OCHA-DAP/hdx-scraper-cods) [![Coverage Status](https://coveralls.io/repos/github/OCHA-DAP/hdx-scraper-cods/badge.svg?branch=master&ts=1)](https://coveralls.io/github/OCHA-DAP/hdx-scraper-cods?branch=master)
+[![Build Status](https://github.com/OCHA-DAP/hdx-scraper-cods/workflows/build/badge.svg)](https://github.com/OCHA-DAP/hdx-python-scraper/actions?query=workflow%3Abuild) [![Coverage Status](https://coveralls.io/repos/github/OCHA-DAP/hdx-scraper-cods/badge.svg?branch=master&ts=1)](https://coveralls.io/github/OCHA-DAP/hdx-scraper-cods?branch=master)
 
 This script connects to the [COD API]() and extracts data from each dataset creating a dataset per country in HDX. The scraper takes around 20 minutes to run. It makes in the order of 200 reads from the COD API and 1000 read/writes (API calls) to HDX in total. It does not create temporary files as it puts urls into HDX. It is run monthly. 
 
