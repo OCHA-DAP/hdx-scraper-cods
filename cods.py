@@ -93,6 +93,8 @@ def generate_dataset(metadata):
         if enddate is None or resource_enddate > enddate:
             enddate = resource_enddate
             ongoing = resource_ongoing
+        if resource_ongoing:
+            resource_enddate = '*'
         resource = Resource(resourcedata)
         resource.set_date_of_resource(resource_startdate, resource_enddate)
         resources.append(resource)
