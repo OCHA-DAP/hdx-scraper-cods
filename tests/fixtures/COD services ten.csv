@@ -1,0 +1,11 @@
+CODE,Dataset title,Aligned to template,Region,COD-PS,AB-PS links,L3,Methodology - other,ITOS enhanced,ITOS geoservices,LANGUAGES,,,HDX URL
+COL,Colombia - Subnational Administrative Divisions,no,ROLAC,YES,YES,NO,YES,YES,YES,1,Standardized to template,,https://data.humdata.org/dataset/colombia-administrative-boundaries-levels-0-3
+ETH,Ethiopia - Subnational Administrative Divisions,no,ROSEA,YES,YES,NO,YES,YES,YES,1,Standardized to template,,https://data.humdata.org/dataset/ethiopia-cod-ab
+IRQ,Iraq - Subnational Administrative Divisions,no,ROMENA,NO,NO,NO,YES,YES,YES,2,Standardized to template,,https://data.humdata.org/dataset/iraq-admin-level-1-boundaries
+KGZ,Kyrgyzstan - Subnational Administrative Divisions,no,ROCCA,YES,NO,NO,YES,YES,YES,3,Standardized to template,,https://data.humdata.org/dataset/kyrgyzstan-administrative-boundaries
+LBR,Liberia - Subnational Administrative Divisions,no,ROWCA,YES,YES,NO,YES,YES,YES,1,Standardized to template,,https://data.humdata.org/dataset/liberia-admin-level-2-boundaries
+MNG,Mongolia - Subnational Administrative Divisions,no,ROAP,YES,YES,NO,YES,YES,YES,2,Standardized to template,,https://data.humdata.org/dataset/mongolia-administrative-boundaries-polygon-polyline
+SOM,Somalia - Subnational Administrative Divisions,no,ROSEA,YES,YES,NO,YES,YES,YES,1,Standardized to template,,https://data.humdata.org/dataset/somalia-administrative-boundaries
+SYR,Syrian Arab Republic - Subnational Administrative Divisions,no,Syria crisis,NO,NO,YES,YES,YES,YES,2,Standardized to template,,https://data.humdata.org/dataset/syrian-arab-republic-administrative-boundaries-populated-places
+UKR,Ukraine - Subnational Administrative Divisions,no,Europe,YES,YES,NO,NO,YES,YES,3,Standardized to template,,https://data.humdata.org/dataset/ukraine-administrative-boundaries-as-of-q2-2017
+YEM,Yemen - Subnational Administrative Divisions,tom working,ROMENA,NO,NO,YES,YES,YES,YES,2,Standardized to template,,https://data.humdata.org/dataset/yemen-admin-boundaries
