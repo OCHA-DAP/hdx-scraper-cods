@@ -98,7 +98,7 @@ class COD:
                 'description': resource_metadata['ResourceItemDescription'],
                 'url': resource_metadata['DownloadURL'],
                 'format': resource_metadata['Format'],
-                'daterange_for_data': f'[{resource_daterange}]',
+                'daterange_for_data': resource_daterange,
                 'grouping': resource_metadata['Version']
             }
             date_info = DateHelper.get_date_info(resource_daterange)
