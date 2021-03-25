@@ -25,8 +25,7 @@ def main():
     configuration = Configuration.read()
     with Download() as downloader:
         cod = COD(downloader)
-        dataset_titles = cod.get_dataset_titles(configuration['config_url'])
-        datasets_metadata = cod.get_datasets_metadata(configuration['url'], dataset_titles=dataset_titles)
+        datasets_metadata = cod.get_datasets_metadata(configuration['url'])
         logger.info('Number of datasets to upload: %d' % len(datasets_metadata))
         for metadata in datasets_metadata:
             dataset, batch = cod.generate_dataset(metadata)
