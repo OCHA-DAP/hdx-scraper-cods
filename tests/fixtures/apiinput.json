@@ -1,0 +1,87 @@
+[{
+"DatasetTitle": "Philippines - Subnational Administrative Boundaries",
+"DatasetDescription": "Philippines administrative levels",
+"FrequencyUpdates": "365",
+"DatasetDate": "[2018-02-09T00:00:00 TO *]",
+"Resources": [
+{
+"Format": "XLSX",
+"ResourceItemTitle": "Philippines - Subnational Administrative Boundaries",
+"ResourceItemDescription": "Philippines - Subnational Administrative Boundaries",
+"DownloadURL": "https://data.humdata.org/dataset/caf116df-f984-4deb-85ca-41b349d3f313/resource/80e52e31-d06c-47ab-9bfa-cbb57dc17a1e/download/phl_adminboundaries_tabulardata.xlsx",
+"Version": "Latest",
+"daterange_for_data": "[2020-05-29T00:00:00 TO 2021-05-29T00:00:00]"
+},
+{
+"Format": "SHP",
+"ResourceItemTitle": "Philippines - Subnational Administrative Boundaries",
+"ResourceItemDescription": "Philippines - Subnational Administrative Boundaries",
+"DownloadURL": "https://data.humdata.org/dataset/caf116df-f984-4deb-85ca-41b349d3f313/resource/12457689-6a86-4474-8032-5ca9464d38a8/download/phl_adm_psa_namria_20200529_shp.zip",
+"Version": "Latest",
+"daterange_for_data": "[2020-05-29T00:00:00 TO 2021-05-29T00:00:00]"
+},
+{
+"Format": "EMF",
+"ResourceItemTitle": "Philippines - Subnational Administrative Boundaries",
+"ResourceItemDescription": "Philippines - Subnational Administrative Boundaries",
+"DownloadURL": "https://data.humdata.org/dataset/caf116df-f984-4deb-85ca-41b349d3f313/resource/82cda4bf-19f1-47bf-9469-f8bb8e5446d3/download/phl_adm_psa_namria_20200529_emf.zip",
+"Version": "Latest",
+"daterange_for_data": "[2020-05-29T00:00:00 TO 2021-05-29T00:00:00]"
+},
+{
+"Format": "Geodatabase",
+"ResourceItemTitle": "Philippines - Subnational Administrative Boundaries",
+"ResourceItemDescription": "Philippines - Subnational Administrative Boundaries",
+"DownloadURL": "https://data.humdata.org/dataset/caf116df-f984-4deb-85ca-41b349d3f313/resource/c8fd86b6-eac2-4e7d-8ee3-6f0d01b991da/download/phl_adminboundaries_candidate_adm3.gdb.zip",
+"Version": "Latest",
+"daterange_for_data": "[2020-05-29T00:00:00 TO 2021-05-29T00:00:00]"
+}
+],
+"Source": "National Mapping and Resource Information Authority (NAMRIA), Philippines Statistics Authority (PSA)",
+"Contributor": "OCHA Philippines",
+"Location": [
+"phl"
+],
+"Visibility": "True",
+"License": "Creative Commons Attribution for Intergovernmental Organisations",
+"License_Other": "",
+"Methodology": "Census",
+"Methodology_Other": "",
+"Caveats": "Prepared by OCHA",
+"is_requestdata_type": false,
+"file_types": "",
+"field_names": "",
+"Tags": [
+"administrative divisions",
+"common operational dataset - cod",
+"gazetteer"
+],
+"Total": 4
+},{
+"DatasetTitle": "Afghanistan - Subnational Administrative Boundaries",
+"DatasetDescription": "Afghanistan administrative level 0 (country), 1 (province), and 2 (district)",
+"FrequencyUpdates": "365",
+"DatasetDate": "[2019-10-22T00:00:00 TO 2019-10-22T23:59:59]",
+"Resources": [],
+"Source": "Afghanistan Geodesy and Cartography Head Office (AGCHO)",
+"Contributor": "OCHA Afghanistan",
+"Location": [
+"afg"
+],
+"Visibility": "True",
+"License": "",
+"License_Other": "",
+"Methodology": "Other",
+"Methodology_Other": "ITOS processing",
+"Caveats": "In-country humanitarian responders",
+"is_requestdata_type": true,
+"file_types": "shp,geodatabase",
+"field_names": "Afghanistan administrative level 0-2 and UNAMA region boundary polygons,lines,and points",
+"Tags": [
+"administrative divisions",
+"common operational dataset - cod",
+"gazetteer",
+"geodata"
+],
+"Total": 0
+}]

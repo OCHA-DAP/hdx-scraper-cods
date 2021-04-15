@@ -12,6 +12,7 @@ from datetime import date
 
 from hdx.data.dataset import Dataset
 from hdx.data.date_helper import DateHelper
+from hdx.data.hdxobject import HDXError
 from hdx.data.organization import Organization
 from hdx.data.resource import Resource
 from hdx.data.showcase import Showcase
@@ -41,13 +42,15 @@ class COD:
 
     def generate_dataset(self, metadata):
         title = metadata['DatasetTitle']
-        if metadata['Total'] == 0:
-            logger.warning(f'Ignoring dataset: {title} which has no resources!')
-            return None
-        logger.info(f'Creating dataset: {title}')
+        is_requestdata_type = metadata['is_requestdata_type']
+        if not is_requestdata_type:
+            if metadata['Total'] == 0:
+                logger.error(f'Ignoring dataset: {title} which has no resources!')
+                return None, None
         if not metadata['Source']:
-            logger.warning(f'Ignoring dataset: {title} which has no source!')
-            return None
+            logger.error(f'Ignoring dataset: {title} which has no source!')
+            return None, None
+        logger.info(f'Creating dataset: {title}')
         dataset = Dataset({
             'name': slugify(title[:99]),
             'title': title,
@@ -72,8 +75,8 @@ class COD:
             dataset['methodology'] = 'Other'
             methodology_other = metadata['Methodology_Other']
             if not methodology_other:
-                logger.warning(f'Ignoring dataset: {title} which has no methodology!')
-                return None
+                logger.error(f'Ignoring dataset: {title} which has no methodology!')
+                return None, None
             dataset['methodology_other'] = methodology_other
         else:
             dataset['methodology'] = methodology
@@ -84,36 +87,50 @@ class COD:
         batch = self.batches_by_org.get(organization_id, get_uuid())
         self.batches_by_org[organization_id] = batch
         dataset.set_subnational(True)
-        dataset.add_country_locations(metadata['Location'])
+        location = metadata['Location']
+        try:
+            dataset.add_country_locations(location)
+        except HDXError:
+            logger.exception(f'Ignoring dataset: {title} which has an invalid location {location}!')
+            return None, None
         dataset.add_tags(metadata['Tags'])
 
-        startdate = None
-        enddate = None
-        ongoing = False
-        resources = list()
-        for resource_metadata in metadata['Resources']:
-            resource_daterange = resource_metadata['daterange_for_data']
-            resourcedata = {
-                'name': resource_metadata['ResourceItemTitle'],
-                'description': resource_metadata['ResourceItemDescription'],
-                'url': resource_metadata['DownloadURL'],
-                'format': resource_metadata['Format'],
-                'daterange_for_data': resource_daterange,
-                'grouping': resource_metadata['Version']
-            }
-            date_info = DateHelper.get_date_info(resource_daterange)
-            resource_startdate = date_info['startdate']
-            resource_enddate = date_info['enddate']
-            resource_ongoing = date_info['ongoing']
-            if startdate is None or resource_startdate < startdate:
-                startdate = resource_startdate
-            if enddate is None or resource_enddate > enddate:
-                enddate = resource_enddate
-                ongoing = resource_ongoing
-            resource = Resource(resourcedata)
-            resources.append(resource)
-        if ongoing:
-            enddate = '*'
-        dataset.set_date_of_dataset(startdate, enddate)
-        dataset.add_update_resources(resources)
+        if is_requestdata_type:
+            dataset['dataset_date'] = metadata['DatasetDate']
+            dataset['is_requestdata_type'] = True
+            dataset['file_types'] = metadata['file_types']
+            dataset['field_names'] = metadata['field_names']
+            num_of_rows = metadata.get('num_of_rows')
+            if num_of_rows:
+                dataset['num_of_rows'] = num_of_rows
+        else:
+            startdate = None
+            enddate = None
+            ongoing = False
+            resources = list()
+            for resource_metadata in metadata['Resources']:
+                resource_daterange = resource_metadata['daterange_for_data']
+                resourcedata = {
+                    'name': resource_metadata['ResourceItemTitle'],
+                    'description': resource_metadata['ResourceItemDescription'],
+                    'url': resource_metadata['DownloadURL'],
+                    'format': resource_metadata['Format'],
+                    'daterange_for_data': resource_daterange,
+                    'grouping': resource_metadata['Version']
+                }
+                date_info = DateHelper.get_date_info(resource_daterange)
+                resource_startdate = date_info['startdate']
+                resource_enddate = date_info['enddate']
+                resource_ongoing = date_info['ongoing']
+                if startdate is None or resource_startdate < startdate:
+                    startdate = resource_startdate
+                if enddate is None or resource_enddate > enddate:
+                    enddate = resource_enddate
+                    ongoing = resource_ongoing
+                resource = Resource(resourcedata)
+                resources.append(resource)
+            if ongoing:
+                enddate = '*'
+            dataset.add_update_resources(resources)
+            dataset.set_date_of_dataset(startdate, enddate)
         return dataset, batch
