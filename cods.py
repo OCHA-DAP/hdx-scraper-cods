@@ -34,8 +34,8 @@ class COD:
         return [x['Dataset title'] for x in iterator]
 
     def get_datasets_metadata(self, url, dataset_titles=None):
-        response = self.downloader.download(url)
-        results = response.json()
+        self.downloader.download(url)
+        results = self.downloader.get_json()
         if dataset_titles is None:
             return results
         return [x for x in results if x['DatasetTitle'] in dataset_titles]

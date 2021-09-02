@@ -33,20 +33,14 @@ class TestCods():
 
     @pytest.fixture(scope='class')
     def downloader(self):
-        class Response:
-            @staticmethod
-            def json():
-                pass
-
         class Download:
             @staticmethod
             def download(url):
-                response = Response()
+                pass
 
-                def fn():
-                    return alljson
-                response.json = fn
-                return response
+            @staticmethod
+            def get_json():
+                return alljson
         return Download()
 
     @pytest.fixture(scope='class')
