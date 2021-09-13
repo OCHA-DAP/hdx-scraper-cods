@@ -1,1 +1,1 @@
-# ACLED has no additional requirements to the base image
+# CODS has no additional requirements to the base image
