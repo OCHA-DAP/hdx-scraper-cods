@@ -79,7 +79,13 @@ class COD:
             dataset["methodology"] = methodology
         dataset.set_maintainer("196196be-6037-4488-8b71-d786adf4c081")
         organization = Organization.autocomplete(metadata["Contributor"])
-        organization_id = organization[0]["id"]
+        try:
+            organization_id = organization[0]["id"]
+        except IndexError:
+            logger.exception(
+                f"Ignoring dataset: {title} which has an invalid organization!"
+            )
+            return None, None
         dataset.set_organization(organization_id)
         batch = self.batches_by_org.get(organization_id, get_uuid())
         self.batches_by_org[organization_id] = batch
@@ -93,7 +99,10 @@ class COD:
             )
             return None, None
         dataset.add_tags(metadata["Tags"])
-
+        if len(dataset.get_tags()) < len(metadata["Tags"]):
+            logger.warning(
+                f"Dataset: {title} has invalid tags!"
+            )
         if is_requestdata_type:
             dataset["dataset_date"] = metadata["DatasetDate"]
             dataset["is_requestdata_type"] = True
