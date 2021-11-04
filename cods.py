@@ -13,7 +13,7 @@ from hdx.data.date_helper import DateHelper
 from hdx.data.hdxobject import HDXError
 from hdx.data.organization import Organization
 from hdx.data.resource import Resource
-from hdx.utilities import get_uuid
+from hdx.utilities.uuid import get_uuid
 from slugify import slugify
 
 logger = logging.getLogger(__name__)

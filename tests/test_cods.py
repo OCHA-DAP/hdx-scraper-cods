@@ -11,7 +11,7 @@ from hdx.data.vocabulary import Vocabulary
 from hdx.hdx_configuration import Configuration
 from hdx.hdx_locations import Locations
 from hdx.location.country import Country
-from hdx.utilities import is_valid_uuid
+from hdx.utilities.uuid import is_valid_uuid
 from hdx.utilities.loader import load_json
 
 from cods import COD
