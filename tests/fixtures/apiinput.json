@@ -42,6 +42,7 @@
 "Location": [
 "phl"
 ],
+"Theme": "COD_AB",
 "Visibility": "True",
 "License": "Creative Commons Attribution for Intergovernmental Organisations",
 "License_Other": "",
@@ -49,6 +50,8 @@
 "Methodology_Other": "",
 "Caveats": "Prepared by OCHA",
 "is_requestdata_type": false,
+"is_enhanced_cod": true,
+"Version": "0",
 "file_types": "",
 "field_names": "",
 "Tags": [
@@ -68,6 +71,7 @@
 "Location": [
 "afg"
 ],
+"Theme": "COD_AB",
 "Visibility": "True",
 "License": "",
 "License_Other": "",
@@ -75,6 +79,8 @@
 "Methodology_Other": "ITOS processing",
 "Caveats": "In-country humanitarian responders",
 "is_requestdata_type": true,
+"is_enhanced_cod": true,
+"Version": "0",
 "file_types": "shp,geodatabase",
 "field_names": "Afghanistan administrative level 0-2 and UNAMA region boundary polygons,lines,and points",
 "Tags": [
