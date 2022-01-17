@@ -46,6 +46,9 @@ class COD:
             logger.error(f"Ignoring dataset: {title} which has no source!")
             return None, None
         logger.info(f"Creating dataset: {title}")
+        cod_level = "cod-standard"
+        if metadata["is_enhanced_cod"]:
+            cod_level = "cod-enhanced"
         dataset = Dataset(
             {
                 "name": slugify(title[:99]),
@@ -58,7 +61,7 @@ class COD:
                 "license_other": metadata["License_Other"],
                 "caveats": metadata["Caveats"],
                 "data_update_frequency": metadata["FrequencyUpdates"],
-                "cod_level": "cod-enhanced",
+                "cod_level": cod_level,
             }
         )
         licence = metadata["License"]
@@ -100,9 +103,7 @@ class COD:
             return None, None
         dataset.add_tags(metadata["Tags"])
         if len(dataset.get_tags()) < len(metadata["Tags"]):
-            logger.warning(
-                f"Dataset: {title} has invalid tags!"
-            )
+            logger.warning(f"Dataset: {title} has invalid tags!")
         if is_requestdata_type:
             dataset["dataset_date"] = metadata["DatasetDate"]
             dataset["is_requestdata_type"] = True
