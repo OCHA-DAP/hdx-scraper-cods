@@ -139,6 +139,12 @@ class COD:
                 resources.append(resource)
             if ongoing:
                 enddate = "*"
-            dataset.add_update_resources(resources)
+            try:
+                dataset.add_update_resources(resources)
+            except HDXError:
+                logger.exception(
+                    f"Ignoring dataset: {title} whose resources could not be added!"
+                )
+                return None, None
             dataset.set_date_of_dataset(startdate, enddate)
         return dataset, batch
