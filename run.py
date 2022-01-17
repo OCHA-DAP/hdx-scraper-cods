@@ -6,11 +6,11 @@ Top level script. Calls other functions that generate datasets that this script 
 import logging
 from os.path import expanduser, join
 
-from hdx.facades.simple import facade
-from hdx.hdx_configuration import Configuration
-from hdx.utilities.downloader import Download
-
 from cods import COD
+from hdx.api.configuration import Configuration
+from hdx.data.hdxobject import HDXError
+from hdx.facades.simple import facade
+from hdx.utilities.downloader import Download
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +29,19 @@ def main():
             dataset, batch = cod.generate_dataset(metadata)
             if dataset:
                 dataset.update_from_yaml()
-                dataset.create_in_hdx(
-                    remove_additional_resources=True,
-                    hxl_update=False,
-                    updated_by_script="HDX Scraper: CODS",
-                    batch=batch,
-                    ignore_fields=["num_of_rows"],
-                )
+                try:
+                    dataset.create_in_hdx(
+                        remove_additional_resources=True,
+                        hxl_update=False,
+                        updated_by_script="HDX Scraper: CODS",
+                        batch=batch,
+                        ignore_check=True,
+                        ignore_fields=["num_of_rows", "resource:description"],
+                    )
+                except HDXError:
+                    logger.exception(
+                        f"Could not upload dataset: {metadata['DatasetTitle']}"
+                    )
 
 
 if __name__ == "__main__":
