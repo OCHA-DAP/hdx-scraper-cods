@@ -13,6 +13,7 @@ from hdx.api.locations import Locations
 from hdx.location.country import Country
 from hdx.utilities.uuid import is_valid_uuid
 from hdx.utilities.loader import load_json
+from hdx.utilities.errors_onexit import ErrorsOnExit
 
 from cods import COD
 
@@ -62,10 +63,10 @@ class TestCods:
 
     @pytest.fixture(scope="class")
     def cod(self, downloader):
-        return COD(downloader, None)
+        return COD(downloader, ErrorsOnExit())
 
     def test_get_dataset_titles(self, configuration):
-        cod = COD(hdx.utilities.downloader.Download(user_agent="test"), None)
+        cod = COD(hdx.utilities.downloader.Download(user_agent="test"), ErrorsOnExit())
         dataset_titles = cod.get_dataset_titles(configuration["config_url"])
         assert dataset_titles == [
             "Colombia - Subnational Administrative Divisions",
