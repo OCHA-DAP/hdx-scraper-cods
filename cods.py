@@ -88,6 +88,8 @@ class COD:
             dataset["methodology"] = methodology
         dataset.set_maintainer("196196be-6037-4488-8b71-d786adf4c081")
         organization = Organization.autocomplete(metadata["Contributor"])
+        if len(organization) == 0:
+            organization = Organization.autocomplete(metadata["Contributor"].replace(" ", "-"))
         organization_id = None
         batch = None
         try:
@@ -106,6 +108,8 @@ class COD:
         dataset.add_tags(metadata["Tags"])
         if len(dataset.get_tags()) < len(metadata["Tags"]):
             self.errors.add(f"Dataset: {title} has invalid tags!")
+        if "common operational dataset - cod" not in dataset.get_tags():
+            dataset.add_tag("common operational dataset - cod")
         if is_requestdata_type:
             dataset["dataset_date"] = metadata["DatasetDate"]
             dataset["is_requestdata_type"] = True
@@ -121,11 +125,15 @@ class COD:
             resources = list()
             for resource_metadata in metadata["Resources"]:
                 resource_daterange = resource_metadata["daterange_for_data"]
+                format = resource_metadata["Format"]
+                if format == "VectorTile":
+                    format = "MBTiles"
+                    logger.error(f"Dataset: {title} is using file type VectorTile instead of MBTiles")
                 resourcedata = {
                     "name": resource_metadata["ResourceItemTitle"],
                     "description": resource_metadata["ResourceItemDescription"],
                     "url": resource_metadata["DownloadURL"],
-                    "format": resource_metadata["Format"],
+                    "format": format,
                     "daterange_for_data": resource_daterange,
                     "grouping": resource_metadata["Version"],
                 }
