@@ -20,9 +20,10 @@ logger = logging.getLogger(__name__)
 
 
 class COD:
-    def __init__(self, downloader):
+    def __init__(self, downloader, errors):
         self.downloader = downloader
         self.batches_by_org = dict()
+        self.errors = errors
 
     def get_dataset_titles(self, url):
         headers, iterator = self.downloader.get_tabular_rows(url, dict_form=True)
@@ -40,18 +41,23 @@ class COD:
         is_requestdata_type = metadata["is_requestdata_type"]
         if not is_requestdata_type:
             if metadata["Total"] == 0:
-                logger.error(f"Ignoring dataset: {title} which has no resources!")
+                self.errors.add(f"Ignoring dataset: {title} which has no resources!")
                 return None, None
         if not metadata["Source"]:
-            logger.error(f"Ignoring dataset: {title} which has no source!")
-            return None, None
+            self.errors.add(f"Dataset: {title} has no source!")
         logger.info(f"Creating dataset: {title}")
         cod_level = "cod-standard"
         if metadata["is_enhanced_cod"]:
             cod_level = "cod-enhanced"
+        theme = metadata["Theme"]
+        location = metadata["Location"]
+        if theme == "COD_AB" and (location == ["MMR"] or location == ["mmr"]):
+            name = slugify(title)
+        else:
+            name = slugify(f"{theme} {' '.join(location)}")
         dataset = Dataset(
             {
-                "name": slugify(title[:99]),
+                "name": name[:99],
                 "title": title,
                 "notes": metadata["DatasetDescription"],
                 "dataset_source": metadata["Source"],
@@ -75,35 +81,31 @@ class COD:
             dataset["methodology"] = "Other"
             methodology_other = metadata["Methodology_Other"]
             if not methodology_other:
-                logger.error(f"Ignoring dataset: {title} which has no methodology!")
-                return None, None
-            dataset["methodology_other"] = methodology_other
+                self.errors.add(f"Dataset: {title} has no methodology!")
+            if methodology_other:
+                dataset["methodology_other"] = methodology_other
         else:
             dataset["methodology"] = methodology
         dataset.set_maintainer("196196be-6037-4488-8b71-d786adf4c081")
         organization = Organization.autocomplete(metadata["Contributor"])
+        organization_id = None
+        batch = None
         try:
             organization_id = organization[0]["id"]
         except IndexError:
-            logger.exception(
-                f"Ignoring dataset: {title} which has an invalid organization!"
-            )
-            return None, None
-        dataset.set_organization(organization_id)
-        batch = self.batches_by_org.get(organization_id, get_uuid())
-        self.batches_by_org[organization_id] = batch
+            self.errors.add(f"Dataset: {title} has an invalid organization {metadata['Contributor']}!")
+        if organization_id:
+            dataset.set_organization(organization_id)
+            batch = self.batches_by_org.get(organization_id, get_uuid())
+            self.batches_by_org[organization_id] = batch
         dataset.set_subnational(True)
-        location = metadata["Location"]
         try:
             dataset.add_country_locations(location)
         except HDXError:
-            logger.exception(
-                f"Ignoring dataset: {title} which has an invalid location {location}!"
-            )
-            return None, None
+            self.errors.add(f"Dataset: {title} has an invalid location {location}!")
         dataset.add_tags(metadata["Tags"])
         if len(dataset.get_tags()) < len(metadata["Tags"]):
-            logger.warning(f"Dataset: {title} has invalid tags!")
+            self.errors.add(f"Dataset: {title} has invalid tags!")
         if is_requestdata_type:
             dataset["dataset_date"] = metadata["DatasetDate"]
             dataset["is_requestdata_type"] = True
@@ -142,10 +144,10 @@ class COD:
                 enddate = "*"
             try:
                 dataset.add_update_resources(resources)
-            except HDXError:
-                logger.exception(
-                    f"Ignoring dataset: {title} whose resources could not be added!"
-                )
-                return None, None
+            except HDXError as ex:
+                self.errors.add(f"Dataset: {title} resources could not be added. Error: {ex}")
             dataset.set_date_of_dataset(startdate, enddate)
-        return dataset, batch
+        if len(self.errors.errors) > 0:
+            return None, None
+        else:
+            return dataset, batch

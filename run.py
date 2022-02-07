@@ -11,6 +11,7 @@ from hdx.api.configuration import Configuration
 from hdx.data.hdxobject import HDXError
 from hdx.facades.simple import facade
 from hdx.utilities.downloader import Download
+from hdx.utilities.errors_onexit import ErrorsOnExit
 
 logger = logging.getLogger(__name__)
 
@@ -21,27 +22,25 @@ def main():
     """Generate dataset and create it in HDX"""
 
     configuration = Configuration.read()
-    with Download() as downloader:
-        cod = COD(downloader)
-        datasets_metadata = cod.get_datasets_metadata(configuration["url"])
-        logger.info(f"Number of datasets to upload: {len(datasets_metadata)}")
-        for metadata in datasets_metadata:
-            dataset, batch = cod.generate_dataset(metadata)
-            if dataset:
-                dataset.update_from_yaml()
-                try:
-                    dataset.create_in_hdx(
-                        remove_additional_resources=True,
-                        hxl_update=False,
-                        updated_by_script="HDX Scraper: CODS",
-                        batch=batch,
-                        ignore_check=True,
-                        ignore_fields=["num_of_rows", "resource:description"],
-                    )
-                except HDXError:
-                    logger.exception(
-                        f"Could not upload dataset: {metadata['DatasetTitle']}"
-                    )
+    with ErrorsOnExit() as errors:
+        with Download() as downloader:
+            cod = COD(downloader, errors)
+            datasets_metadata = cod.get_datasets_metadata(configuration["url"])
+            logger.info(f"Number of datasets to upload: {len(datasets_metadata)}")
+            for metadata in datasets_metadata:
+                dataset, batch = cod.generate_dataset(metadata)
+                if dataset:
+                    dataset.update_from_yaml()
+                    try:
+                        dataset.create_in_hdx(
+                            remove_additional_resources=True,
+                            hxl_update=False,
+                            updated_by_script="HDX Scraper: CODS",
+                            batch=batch,
+                            ignore_fields=["num_of_rows", "resource:description"],
+                        )
+                    except HDXError as ex:
+                        errors.add(f"Dataset: {metadata['DatasetTitle']}, error: {ex}")
 
 
 if __name__ == "__main__":

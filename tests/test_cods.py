@@ -62,10 +62,10 @@ class TestCods:
 
     @pytest.fixture(scope="class")
     def cod(self, downloader):
-        return COD(downloader)
+        return COD(downloader, None)
 
     def test_get_dataset_titles(self, configuration):
-        cod = COD(hdx.utilities.downloader.Download(user_agent="test"))
+        cod = COD(hdx.utilities.downloader.Download(user_agent="test"), None)
         dataset_titles = cod.get_dataset_titles(configuration["config_url"])
         assert dataset_titles == [
             "Colombia - Subnational Administrative Divisions",
@@ -95,7 +95,7 @@ class TestCods:
         dataset, batch = cod.generate_dataset(alljson[0])
         assert is_valid_uuid(batch) is True
         assert dataset == {
-            "name": "philippines-subnational-administrative-boundaries",
+            "name": "cod-ab-phl",
             "title": "Philippines - Subnational Administrative Boundaries",
             "notes": "Philippines administrative levels",
             "dataset_source": "National Mapping and Resource Information Authority (NAMRIA), Philippines Statistics Authority (PSA)",
@@ -174,7 +174,7 @@ class TestCods:
         dataset, batch = cod.generate_dataset(alljson[1])
         assert is_valid_uuid(batch) is True
         assert dataset == {
-            "name": "afghanistan-subnational-administrative-boundaries",
+            "name": "cod-ab-afg",
             "title": "Afghanistan - Subnational Administrative Boundaries",
             "notes": "Afghanistan administrative level 0 (country), 1 (province), and 2 (district)",
             "dataset_source": "Afghanistan Geodesy and Cartography Head Office (AGCHO)",

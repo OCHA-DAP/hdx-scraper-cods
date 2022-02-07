@@ -1,3 +1,4 @@
 python-slugify==5.0.2
-hdx-python-api==5.5.1
+hdx-python-api==5.5.3
 -r docker-requirements.txt
+slugify~=0.0.1
