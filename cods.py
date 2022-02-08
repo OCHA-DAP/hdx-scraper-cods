@@ -50,6 +50,8 @@ class COD:
         if metadata["is_enhanced_cod"]:
             cod_level = "cod-enhanced"
         theme = metadata["Theme"]
+        if not theme:
+            self.errors.add(f"Dataset: {title} has no theme!")
         location = metadata["Location"]
         if theme == "COD_AB" and (location == ["MMR"] or location == ["mmr"]):
             name = slugify(title)
