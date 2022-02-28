@@ -33,13 +33,13 @@ def main():
                     dataset.update_from_yaml()
                     try:
                         dataset.create_in_hdx(
-                            remove_additional_resources=True,
                             hxl_update=False,
                             updated_by_script="HDX Scraper: CODS",
                             batch=batch,
                             ignore_fields=["num_of_rows", "resource:description"],
                         )
                     except HDXError as ex:
+                        logger.exception(f"Dataset: {metadata['DatasetTitle']} could not be uploaded")
                         errors.add(f"Dataset: {metadata['DatasetTitle']}, error: {ex}")
 
 
