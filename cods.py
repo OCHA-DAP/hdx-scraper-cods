@@ -79,11 +79,13 @@ class COD:
         else:
             dataset["license_id"] = licence
         methodology = metadata["Methodology"]
+        methodology_other = metadata["Methodology_Other"]
+        if methodology == "" and methodology_other == "":
+            self.errors.add(f"Dataset: {title} has no methodology!")
         if methodology == "Other":
             dataset["methodology"] = "Other"
-            methodology_other = metadata["Methodology_Other"]
-            if not methodology_other:
-                self.errors.add(f"Dataset: {title} has no methodology!")
+            if not methodology_other or methodology_other == "":
+                self.errors.add(f"Dataset: {title} has no other methodology!")
             if methodology_other:
                 dataset["methodology_other"] = methodology_other
         else:
