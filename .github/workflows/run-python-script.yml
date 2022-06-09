@@ -30,16 +30,16 @@ jobs:
         USER_AGENT: ${{ secrets.USER_AGENT }}
       run: |
         python run.py
-#    - name: Send mail
-#      if: failure()
-#      uses: dawidd6/action-send-mail@v2
-#      with:
-#        server_address: ${{secrets.EMAIL_SERVER}}
-#        server_port: ${{secrets.EMAIL_PORT}}
-#        username: ${{secrets.EMAIL_USERNAME}}
-#        password: ${{secrets.EMAIL_PASSWORD}}
-#        subject: "FAILED: ${{github.repository}} run job"
-#        body: GitHub Actions run job for ${{github.repository}} failed!
-#        to: ${{secrets.EMAIL_LIST}}
-#        from: ${{secrets.EMAIL_FROM}}
-#        content_type: text/html
+    - name: Send mail
+      if: failure()
+      uses: dawidd6/action-send-mail@v2
+      with:
+        server_address: ${{secrets.EMAIL_SERVER}}
+        server_port: ${{secrets.EMAIL_PORT}}
+        username: ${{secrets.EMAIL_USERNAME}}
+        password: ${{secrets.EMAIL_PASSWORD}}
+        subject: "FAILED: ${{github.repository}} run job"
+        body: GitHub Actions run job for ${{github.repository}} failed!
+        to: ${{secrets.EMAIL_LIST}}
+        from: ${{secrets.EMAIL_FROM}}
+        content_type: text/html
