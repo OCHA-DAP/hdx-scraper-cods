@@ -37,6 +37,7 @@ class COD:
         return [x for x in results if x["DatasetTitle"] in dataset_titles]
 
     def generate_dataset(self, metadata):
+        error_count = len(self.errors.errors)
         title = metadata["DatasetTitle"]
         is_requestdata_type = metadata["is_requestdata_type"]
         if not is_requestdata_type:
@@ -159,7 +160,7 @@ class COD:
             except HDXError as ex:
                 self.errors.add(f"Dataset: {title} resources could not be added. Error: {ex}")
             dataset.set_date_of_dataset(startdate, enddate)
-        if len(self.errors.errors) > 0:
+        if len(self.errors.errors) > error_count:
             return None, None
         else:
             return dataset, batch
