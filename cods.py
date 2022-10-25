@@ -73,6 +73,12 @@ class COD:
                 "cod_level": cod_level,
             }
         )
+        hdx_dataset = Dataset.read_from_hdx(name)
+        customviz = None
+        if hdx_dataset:
+            customviz = hdx_dataset.get("customviz")
+        if customviz:
+            dataset["customviz"] = customviz
         licence = metadata["License"]
         if licence == "Other":
             dataset["license_id"] = "hdx-other"
