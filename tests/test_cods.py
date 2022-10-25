@@ -132,7 +132,7 @@ class TestCods:
                     "vocabulary_id": "4e61d464-4943-4e97-973a-84673c1aaa87",
                 },
             ],
-            "dataset_date": "[2020-05-29T00:00:00 TO 2021-05-29T00:00:00]",
+            "dataset_date": "[2020-05-29T00:00:00 TO 2021-05-29T23:59:59]",
         }
         resources = dataset.get_resources()
         assert len(resources) == alljson[0]["Total"]
