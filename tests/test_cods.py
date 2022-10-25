@@ -62,6 +62,13 @@ class TestCods:
         return Download()
 
     @pytest.fixture(scope="class")
+    def Dataset(self):
+        class Dataset:
+            @staticmethod
+            def read_from_hdx():
+                return None
+
+    @pytest.fixture(scope="class")
     def cod(self, downloader):
         return COD(downloader, ErrorsOnExit())
 
