@@ -121,6 +121,16 @@ class COD:
             self.errors.add(f"Dataset: {title} has invalid tags!")
         if "common operational dataset - cod" not in dataset.get_tags():
             dataset.add_tag("common operational dataset - cod")
+        if theme == "COD_AB" or theme == "COD_EM":
+            if "baseline population" in dataset.get_tags():
+                dataset.remove_tag("baseline population")
+            if "administrative divisions" not in dataset.get_tags():
+                dataset.add_tag("administrative divisions")
+        if theme == "COD_PS":
+            if "baseline population" not in dataset.get_tags():
+                dataset.add_tag("baseline population")
+            if "administrative divisions" in dataset.get_tags():
+                dataset.remove_tag("administrative divisions")
         if is_requestdata_type:
             dataset["dataset_date"] = metadata["DatasetDate"]
             dataset["is_requestdata_type"] = True
