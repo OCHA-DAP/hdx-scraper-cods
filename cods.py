@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 class COD:
-    def __init__(self, downloader, ab_url, em_url, ps_url, errors):
-        self.downloader = downloader
+    def __init__(self, retriever, ab_url, em_url, ps_url, errors):
+        self.retriever = retriever
         self.service_urls = {
             "ab": ab_url,
             "em": em_url,
@@ -21,7 +21,7 @@ class COD:
         for cod_type in ["ab", "em"]:
             url = self.service_urls.get(cod_type)
             try:
-                service_json = self.downloader.download_json(f"{url}?f=pjson")
+                service_json = self.retriever.download_json(f"{url}?f=pjson")
             except DownloadError:
                 self.errors.add(f"Could not get data from {url}")
                 return boundary_jsons
@@ -53,7 +53,7 @@ class COD:
                 resource["format"] = "Geoservice"
 
                 try:
-                    resource_desc = self.downloader.download_json(f"{resource['url']}?f=pjson")
+                    resource_desc = self.retriever.download_json(f"{resource['url']}?f=pjson")
                 except DownloadError:
                     self.errors.add(f"{iso}: could not get data from {resource['download_url']}")
                     continue
@@ -73,8 +73,8 @@ class COD:
                 resource["format"] = "JSON"
 
                 try:
-                    year = self.downloader.download_json(resource["url"])
-                except DownloadError:
+                    year = self.retriever.download_json(resource["url"], file_prefix=str(adm))
+                except (DownloadError, FileNotFoundError):
                     do_not_continue = True
                     continue
 
