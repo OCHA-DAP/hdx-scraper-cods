@@ -21,7 +21,7 @@ class COD:
         for cod_type in ["ab", "em"]:
             url = self.service_urls.get(cod_type)
             try:
-                service_json = self.downloader.download_json(url + "?f=pjson")
+                service_json = self.downloader.download_json(f"{url}?f=pjson")
             except DownloadError:
                 self.errors.add(f"Could not get data from {url}")
                 return boundary_jsons
@@ -44,15 +44,16 @@ class COD:
 
             for service in service_list:
                 resource = dict()
-                if service["name"].split("/")[1][:3].upper() != iso:
+                service_name = service["name"].split("/")[1]
+                if service_name[:3].upper() != iso:
                     continue
 
-                resource["url"] = url + "/" + service["name"].split("/")[1] + "/" + service["type"]
+                resource["url"] = f"{url}/{service_name}/{service['type']}"
                 resource["name"] = f"{service['name']} ({service['type']})"
                 resource["format"] = "Geoservice"
 
                 try:
-                    resource_desc = self.downloader.download_json(resource["url"] + "?f=pjson")
+                    resource_desc = self.downloader.download_json(f"{resource['url']}?f=pjson")
                 except DownloadError:
                     self.errors.add(f"{iso}: could not get data from {resource['download_url']}")
                     continue
