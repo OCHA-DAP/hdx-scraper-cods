@@ -1,16 +1,17 @@
 from os.path import join
 
 import pytest
-from hdx.data.vocabulary import Vocabulary
 from hdx.api.configuration import Configuration
 from hdx.api.locations import Locations
+from hdx.data.dataset import Dataset
+from hdx.data.vocabulary import Vocabulary
 from hdx.location.country import Country
 from hdx.utilities.downloader import Download
-from hdx.utilities.uuid import is_valid_uuid
 from hdx.utilities.errors_onexit import ErrorsOnExit
 from hdx.utilities.path import temp_dir
 from hdx.utilities.retriever import Retrieve
 from hdx.utilities.useragent import UserAgent
+from hdx.utilities.uuid import is_valid_uuid
 
 from cods import COD
 
@@ -191,6 +192,35 @@ class TestCods:
                         'url': 'https://codgis.itos.uga.edu/arcgis/rest/services/COD_External/AFG_pcode/MapServer',
                         'format': 'geoservice',
                         'daterange_for_data': '[2021-11-17T00:00:00 TO 2022-11-17T00:00:00]',
+                        'resource_type': 'api', 'url_type': 'api'
+                    }
+                ]
+
+    def test_add_population_services(self, configuration, fixtures_folder):
+        with temp_dir() as folder:
+            with Download() as downloader:
+                retriever = Retrieve(
+                    downloader, folder, fixtures_folder, folder, False, True
+                )
+                cod = COD(retriever, ErrorsOnExit())
+                dataset = Dataset.load_from_json(join(fixtures_folder, "dataset-cod-ps-afg.json"))
+                dataset, batch = cod.add_population_services(dataset, "AFG", configuration["ps_url"])
+                assert is_valid_uuid(batch) is True
+                resources = dataset.get_resources()
+                assert len(resources) == 6
+                assert dataset.get_resources()[-2:] == [
+                    {
+                        'url': 'https://apps.itos.uga.edu/CODV2API/api/v1/themes/cod-ps/lookup/Get/0/do/AFG',
+                        'name': 'AFG admin 0 population',
+                        'format': 'json',
+                        'description': 'Afghanistan administrative level 0 2021 population statistics',
+                        'resource_type': 'api', 'url_type': 'api'
+                    },
+                    {
+                        'url': 'https://apps.itos.uga.edu/CODV2API/api/v1/themes/cod-ps/lookup/Get/1/do/AFG',
+                        'name': 'AFG admin 1 population',
+                        'format': 'json',
+                        'description': 'Afghanistan administrative level 1 2021 population statistics',
                         'resource_type': 'api', 'url_type': 'api'
                     }
                 ]

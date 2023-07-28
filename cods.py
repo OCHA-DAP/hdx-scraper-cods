@@ -5,9 +5,10 @@ from hdx.data.date_helper import DateHelper
 from hdx.data.hdxobject import HDXError
 from hdx.data.organization import Organization
 from hdx.data.resource import Resource
+from hdx.utilities.retriever import DownloadError
+from hdx.location.country import Country
 from hdx.utilities.uuid import get_uuid
 from slugify import slugify
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +24,12 @@ class COD:
             return [x["DatasetTitle"] for x in results]
         return [x["DatasetTitle"] for x in results if len(x["Location"]) > 0 and x["Location"][0].upper() in countries]
 
-    def get_datasets_metadata(self, url, countries=None, enhanced_only=True):
+    def get_datasets_metadata(self, url, countries=None, enhanced_only=True, boundaries_only=True):
         results = self.retriever.download_json(url)
         if enhanced_only:
-            results = [x for x in results if x["is_enhanced_cod"]]
+            results = [x for x in results if x.get("is_enhanced_cod")]
+        if boundaries_only:
+            results = [x for x in results if x.get("Theme") in ["COD_AB", "COD_EM"]]
         if countries is None:
             return results
         return [x for x in results if len(x["Location"]) > 0 and x["Location"][0].upper() in countries]
@@ -86,11 +89,11 @@ class COD:
         methodology = metadata["Methodology"]
         methodology_other = metadata["Methodology_Other"]
         if methodology == "" and methodology_other == "":
-            self.errors.add(f"Dataset: {title} has no methodology!")
+            self.errors.add(f"Dataset: {dataset['name']} has no methodology!")
         if methodology == "Other":
             dataset["methodology"] = "Other"
             if not methodology_other or methodology_other == "":
-                self.errors.add(f"Dataset: {title} has no other methodology!")
+                self.errors.add(f"Dataset: {dataset['name']} has no other methodology!")
             if methodology_other:
                 dataset["methodology_other"] = methodology_other
         else:
@@ -104,7 +107,7 @@ class COD:
         try:
             organization_id = organization[0]["id"]
         except IndexError:
-            self.errors.add(f"Dataset: {title} has an invalid organization {metadata['Contributor']}!")
+            self.errors.add(f"Dataset: {dataset['name']} has an invalid organization {metadata['Contributor']}!")
         if organization_id:
             dataset.set_organization(organization_id)
             batch = self.batches_by_org.get(organization_id, get_uuid())
@@ -113,11 +116,11 @@ class COD:
         try:
             dataset.add_country_locations(location)
         except HDXError:
-            self.errors.add(f"Dataset: {title} has an invalid location {location}!")
+            self.errors.add(f"Dataset: {dataset['name']} has an invalid location {location}!")
         tags = [t for t in metadata["Tags"] if t.replace(" ", "") != "commonoperationaldataset-cod"]
         dataset.add_tags(tags)
         if len(dataset.get_tags()) < len(tags):
-            self.errors.add(f"Dataset: {title} has invalid tags!")
+            self.errors.add(f"Dataset: {dataset['name']} has invalid tags!")
         if theme in ["COD_AB", "COD_EM"]:
             if "baseline population" in dataset.get_tags():
                 dataset.remove_tag("baseline population")
@@ -149,7 +152,7 @@ class COD:
                 format = resource_metadata["Format"]
                 if format == "VectorTile":
                     format = "MBTiles"
-                    logger.error(f"Dataset: {title} is using file type VectorTile instead of MBTiles")
+                    logger.error(f"Dataset: {dataset['name']} is using file type VectorTile instead of MBTiles")
                 resourcedata = {
                     "name": resource_metadata["ResourceItemTitle"],
                     "description": resource_metadata["ResourceItemDescription"],
@@ -173,9 +176,64 @@ class COD:
             try:
                 dataset.add_update_resources(resources)
             except HDXError as ex:
-                self.errors.add(f"Dataset: {title} resources could not be added. Error: {ex}")
+                self.errors.add(f"Dataset: {dataset['name']} resources could not be added. Error: {ex}")
             dataset.set_reference_period(startdate, enddate, ongoing)
         if len(self.errors.errors) > error_count:  # if more errors were generated, do not push dataset to HDX
             return None, None
         else:
             return dataset, batch
+
+    def add_population_services(self, dataset, iso, url):
+        country_name = Country.get_country_name_from_iso3(iso)
+
+        resources = list()
+        do_not_continue = False
+        for adm in range(0, 5):
+            resource = dict()
+            if do_not_continue:
+                continue
+
+            resource["url"] = url.replace("/iso", f"/{iso}").replace("/adm/", f"/{adm}/")
+            resource["name"] = f"{iso.upper()} admin {adm} population"
+            resource["format"] = "JSON"
+            try:
+                year = self.retriever.download_json(resource["url"], file_prefix=str(adm))
+            except (DownloadError, FileNotFoundError):
+                do_not_continue = True
+                continue
+
+            if len(year) == 1 and year[0].get("status"):
+                do_not_continue = True
+                continue
+
+            year = year.get("Year")
+            if not year:
+                continue
+
+            resource["description"] = f"{country_name} administrative level {adm} {year} population statistics"
+            resources.append(resource)
+
+        for resource in reversed(dataset.get_resources()):
+            if resource.get_file_type() not in ["geoservice", "json"]:
+                continue
+            if "itos.uga.edu" not in resource["url"]:
+                self.errors.add(f"Dataset: {dataset['name']} has service resource {resource['url']}")
+                continue
+
+            try:
+                dataset.delete_resource(resource, delete=False)
+            except HDXError:
+                self.errors.add(f"Dataset: {dataset['name']} service resources could not be deleted")
+                continue
+
+        try:
+            dataset.add_update_resources(resources)
+        except HDXError as ex:
+            self.errors.add(f"Dataset: {dataset['name']} resources could not be added. Error: {ex}")
+            return None, None
+
+        organization_id = dataset.get_organization()["id"]
+        batch = self.batches_by_org.get(organization_id, get_uuid())
+        self.batches_by_org[organization_id] = batch
+
+        return dataset, batch
