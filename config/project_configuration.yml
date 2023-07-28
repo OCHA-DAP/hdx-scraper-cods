@@ -1,3 +1,1 @@
-# Collector specific configuration
 url: "https://apps.itos.uga.edu/CODV2API/api/v1/Locations/all"
-config_url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2kupemUKhRigiTv9UFEk9zCzqA296mJDLmXG7MuOpJzH5tcAyuM0rGDXwFXoG9jRkiNDJLwMX74oG/pub?gid=0&single=true&output=csv"

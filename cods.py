@@ -1,11 +1,3 @@
-#!/usr/bin/python
-"""
-CODS:
------
-
-Generates urls from the COD website.
-
-"""
 import logging
 
 from hdx.data.dataset import Dataset
@@ -20,23 +12,26 @@ logger = logging.getLogger(__name__)
 
 
 class COD:
-    def __init__(self, downloader, errors):
-        self.downloader = downloader
+    def __init__(self, retriever, errors):
+        self.retriever = retriever
         self.batches_by_org = dict()
         self.errors = errors
 
-    def get_dataset_titles(self, url):
-        headers, iterator = self.downloader.get_tabular_rows(url, dict_form=True)
-        return [x["Dataset title"] for x in iterator]
+    def get_dataset_titles(self, url, countries=None):
+        results = self.retriever.download_json(url)
+        if countries is None:
+            return [x["DatasetTitle"] for x in results]
+        return [x["DatasetTitle"] for x in results if len(x["Location"]) > 0 and x["Location"][0].upper() in countries]
 
-    def get_datasets_metadata(self, url, dataset_titles=None):
-        self.downloader.download(url)
-        results = self.downloader.get_json()
-        if dataset_titles is None:
+    def get_datasets_metadata(self, url, countries=None, enhanced_only=True):
+        results = self.retriever.download_json(url)
+        if enhanced_only:
+            results = [x for x in results if x["is_enhanced_cod"]]
+        if countries is None:
             return results
-        return [x for x in results if x["DatasetTitle"] in dataset_titles]
+        return [x for x in results if len(x["Location"]) > 0 and x["Location"][0].upper() in countries]
 
-    def generate_dataset(self, metadata):
+    def generate_dataset(self, metadata, latest_only=True):
         error_count = len(self.errors.errors)
         title = metadata["DatasetTitle"]
         is_requestdata_type = metadata["is_requestdata_type"]
@@ -73,7 +68,10 @@ class COD:
                 "cod_level": cod_level,
             }
         )
-        hdx_dataset = Dataset.read_from_hdx(name)
+        try:
+            hdx_dataset = Dataset.read_from_hdx(name)
+        except HDXError:
+            logger.error(f"Could not read dataset {name} from HDX")
         customviz = None
         if hdx_dataset:
             customviz = hdx_dataset.get("customviz")
@@ -116,21 +114,20 @@ class COD:
             dataset.add_country_locations(location)
         except HDXError:
             self.errors.add(f"Dataset: {title} has an invalid location {location}!")
-        dataset.add_tags(metadata["Tags"])
-        if len(dataset.get_tags()) < len(metadata["Tags"]):
+        tags = [t for t in metadata["Tags"] if t.replace(" ", "") != "commonoperationaldataset-cod"]
+        dataset.add_tags(tags)
+        if len(dataset.get_tags()) < len(tags):
             self.errors.add(f"Dataset: {title} has invalid tags!")
-        if "common operational dataset - cod" not in dataset.get_tags():
-            dataset.add_tag("common operational dataset - cod")
-        if theme == "COD_AB" or theme == "COD_EM":
+        if theme in ["COD_AB", "COD_EM"]:
             if "baseline population" in dataset.get_tags():
                 dataset.remove_tag("baseline population")
-            if "administrative divisions" not in dataset.get_tags():
-                dataset.add_tag("administrative divisions")
+            if "administrative boundaries-divisions" not in dataset.get_tags():
+                dataset.add_tag("administrative boundaries-divisions")
         if theme == "COD_PS":
             if "baseline population" not in dataset.get_tags():
                 dataset.add_tag("baseline population")
-            if "administrative divisions" in dataset.get_tags():
-                dataset.remove_tag("administrative divisions")
+            if "administrative boundaries-divisions" in dataset.get_tags():
+                dataset.remove_tag("administrative boundaries-divisions")
         if is_requestdata_type:
             dataset["dataset_date"] = metadata["DatasetDate"]
             dataset["is_requestdata_type"] = True
@@ -145,6 +142,9 @@ class COD:
             ongoing = False
             resources = list()
             for resource_metadata in metadata["Resources"]:
+                version = resource_metadata["Version"]
+                if latest_only and version.lower() != "latest":
+                    continue
                 resource_daterange = resource_metadata["daterange_for_data"]
                 format = resource_metadata["Format"]
                 if format == "VectorTile":
@@ -156,7 +156,6 @@ class COD:
                     "url": resource_metadata["DownloadURL"],
                     "format": format,
                     "daterange_for_data": resource_daterange,
-                    "grouping": resource_metadata["Version"],
                 }
                 date_info = DateHelper.get_date_info(resource_daterange)
                 resource_startdate = date_info["startdate"]
@@ -175,8 +174,8 @@ class COD:
                 dataset.add_update_resources(resources)
             except HDXError as ex:
                 self.errors.add(f"Dataset: {title} resources could not be added. Error: {ex}")
-            dataset.set_date_of_dataset(startdate, enddate)
-        if len(self.errors.errors) > error_count:
+            dataset.set_reference_period(startdate, enddate, ongoing)
+        if len(self.errors.errors) > error_count:  # if more errors were generated, do not push dataset to HDX
             return None, None
         else:
             return dataset, batch
