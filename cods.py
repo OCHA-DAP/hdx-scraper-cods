@@ -161,7 +161,7 @@ class COD:
                     "format": format,
                     "daterange_for_data": resource_daterange,
                 }
-                date_info = DateHelper.get_date_info(resource_daterange)
+                date_info = DateHelper.get_reference_period_info(resource_daterange)
                 resource_startdate = date_info["startdate"]
                 resource_enddate = date_info["enddate"]
                 resource_ongoing = date_info["ongoing"]
