@@ -3,6 +3,7 @@ import logging
 from os.path import expanduser, join
 
 from cods import COD
+
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
@@ -39,8 +40,6 @@ def main(
     use_saved,
     **ignore,
 ):
-    """Generate dataset and create it in HDX"""
-
     configuration = Configuration.read()
     with ErrorsOnExit() as errors:
         with temp_dir() as temp_folder:

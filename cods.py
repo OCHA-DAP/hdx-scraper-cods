@@ -1,14 +1,15 @@
 import logging
+from slugify import slugify
 
 from hdx.data.dataset import Dataset
 from hdx.data.date_helper import DateHelper
 from hdx.data.hdxobject import HDXError
 from hdx.data.organization import Organization
 from hdx.data.resource import Resource
-from hdx.utilities.retriever import DownloadError
 from hdx.location.country import Country
+from hdx.utilities.retriever import DownloadError
 from hdx.utilities.uuid import get_uuid
-from slugify import slugify
+
 logger = logging.getLogger(__name__)
 
 
