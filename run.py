@@ -5,10 +5,10 @@ from os.path import expanduser, join
 from cods import COD
 
 from hdx.api.configuration import Configuration
-from hdx.location.country import Country
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
 from hdx.facades.keyword_arguments import facade
+from hdx.location.country import Country
 from hdx.utilities.downloader import Download
 from hdx.utilities.errors_onexit import ErrorsOnExit
 from hdx.utilities.path import temp_dir
@@ -47,57 +47,44 @@ def main(
                 retriever = Retrieve(
                     downloader, temp_folder, "saved_data", temp_folder, save, use_saved
                 )
-                cod = COD(
-                    retriever,
-                    configuration["ab_url"],
-                    configuration["em_url"],
-                    configuration["ps_url"],
-                    errors,
+                cod = COD(retriever, errors)
+                datasets_metadata = cod.get_datasets_metadata(
+                    configuration["url"],
+                    countries_override,
+                    enhanced_only=True,
+                    boundaries_only=True,
                 )
+                logger.info(f"Number of datasets to upload: {len(datasets_metadata)}")
+                datasets_to_update = []
+                for metadata in datasets_metadata:
+                    dataset, batch = cod.generate_dataset(metadata, latest_only=True)
+                    if dataset:
+                        datasets_to_update.append([dataset, batch])
 
-                boundary_jsons = cod.get_boundary_jsons()
-                if len(boundary_jsons) < 2:
-                    cod.errors.add("Could not get boundary service data")
-                    return
+                if not countries_override:
+                    countries_override = [c for c in Country.countriesdata()["countries"]]
+                for country in countries_override:
+                    dataset = Dataset.read_from_hdx(f"cod-ps-{country.lower()}")
 
-                countries = Country.countriesdata()["countries"]
-                if countries_override:
-                    countries = {
-                        country.upper(): countries.get(country.upper()) for country in countries_override
-                    }
-                dataset_types = ["ab", "em", "ps"]
+                    if not dataset:
+                        continue
 
-                for country in countries:
-                    for dataset_type in dataset_types:
-                        try:
-                            dataset = Dataset.read_from_hdx(f"cod-{dataset_type}-{country.lower()}")
-                        except HDXError:
-                            logger.warning(f"Could not read cod-{dataset_type}-{country.lower()}")
-                            continue
+                    dataset, batch = cod.add_population_services(dataset, country, configuration["ps_url"])
+                    if dataset:
+                        datasets_to_update.append([dataset, batch])
 
-                        if not dataset:
-                            continue
-
-                        updated_dataset = cod.update_dataset(dataset, countries[country], dataset_type, boundary_jsons)
-
-                        if not updated_dataset:
-                            continue
-
-                        if save:
-                            dataset.save_to_json(join("saved_data", f"dataset-{dataset['name']}.json"))
-                            updated_dataset.save_to_json(join("saved_data", f"dataset-{dataset['name']}_updated.json"))
-
-                        try:
-                            updated_dataset.create_in_hdx(
-                                hxl_update=False,
-                                batch_mode="KEEP_OLD",
-                                updated_by_script="HDX Scraper: CODS",
-                                remove_additional_resources=True,
-                                ignore_fields=["num_of_rows", "resource:description"],
-                            )
-                        except HDXError as ex:
-                            logger.exception(f"Dataset: {updated_dataset['name']} could not be uploaded")
-                            errors.add(f"Dataset: {updated_dataset['name']}, error: {ex}")
+                for dataset, batch in datasets_to_update:
+                    try:
+                        dataset.create_in_hdx(
+                            hxl_update=False,
+                            remove_additional_resources=True,
+                            updated_by_script="HDX Scraper: CODS",
+                            batch=batch,
+                            ignore_fields=["num_of_rows", "resource:description"],
+                        )
+                    except HDXError as ex:
+                        logger.exception(f"Dataset: {metadata['DatasetTitle']} could not be uploaded")
+                        errors.add(f"Dataset: {metadata['DatasetTitle']}, error: {ex}")
 
 
 if __name__ == "__main__":

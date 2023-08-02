@@ -1,1 +1,4 @@
+python-slugify~=8.0.1
 hdx-python-api~=6.0.0
+-r docker-requirements.txt
+slugify~=0.0.1
