@@ -24,29 +24,20 @@ def parse_args():
     parser.add_argument(
         "-co", "--countries_override", default=None, help="Countries to run"
     )
-    parser.add_argument(
-        "-sv", "--save", default=False, action="store_true", help="Save downloaded data"
-    )
-    parser.add_argument(
-        "-usv", "--use_saved", default=False, action="store_true", help="Use saved data",
-    )
     args = parser.parse_args()
     return args
 
 
-def main(
-    countries_override,
-    save,
-    use_saved,
-    **ignore,
-):
-    configuration = Configuration.read()
+def main(countries_override, **ignore) -> None:
+    """Generate datasets and create them in HDX"""
+
     with ErrorsOnExit() as errors:
         with temp_dir() as temp_folder:
             with Download() as downloader:
                 retriever = Retrieve(
-                    downloader, temp_folder, "saved_data", temp_folder, save, use_saved
+                    downloader, temp_folder, "saved_data", temp_folder, False, False
                 )
+                configuration = Configuration.read()
                 cod = COD(retriever, errors)
                 datasets_metadata = cod.get_datasets_metadata(
                     configuration["url"],
@@ -95,11 +86,8 @@ if __name__ == "__main__":
         countries_override = None
     facade(
         main,
-        hdx_site="prod",
-        user_agent_config_yaml=join(expanduser("~"), ".useragents.yml"),
+        user_agent_config_yaml=join(expanduser("~"), ".useragents.yaml"),
         user_agent_lookup=lookup,
-        project_config_yaml=join("config", "project_configuration.yml"),
+        project_config_yaml=join("config", "project_configuration.yaml"),
         countries_override=countries_override,
-        save=args.save,
-        use_saved=args.use_saved,
     )
