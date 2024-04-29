@@ -7,7 +7,7 @@ from cods import COD
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
-from hdx.facades.keyword_arguments import facade
+from hdx.facades.infer_arguments import facade
 from hdx.location.country import Country
 from hdx.utilities.downloader import Download
 from hdx.utilities.errors_onexit import ErrorsOnExit
