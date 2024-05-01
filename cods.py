@@ -18,10 +18,11 @@ class COD:
             "metadata item",
             "resource name",
             "metadata value",
+            "updated metadata value",
         ]]
 
     def get_dataset_names(self, url, countries=None):
-        _, iterator = self.retriever.get_tabular_rows(url, format="csv", dict_form=True)
+        _, iterator = self.retriever.get_tabular_rows(url, format="csv", dict_form=True, headers=2)
         dataset_names = []
         for row in iterator:
             country = row["country"]
@@ -37,10 +38,12 @@ class COD:
 
         for row in iterator:
             dataset_name = row["dataset"]
-            country = row["dountry"]
+            country = row["country"]
             if countries and country not in countries:
                 continue
-            if row["resource name"] == "":
+            if not row["updated metadata value"] or row["updated metadata value"] == "":
+                continue
+            if not row["resource name"] or row["resource name"] == "":
                 dict_of_dicts_add(self.metadata, dataset_name, row["metadata item"], row["updated metadata value"])
             else:
                 dict_of_dicts_add(self.metadata, dataset_name, row["resource name"], row["updated metadata value"])
@@ -60,8 +63,6 @@ class COD:
                 continue
             hdx_metadata = dataset[metadata_item]
             new_metadata = metadata[metadata_item]
-            if new_metadata == "":
-                continue
             if new_metadata != hdx_metadata:
                 dataset[metadata_item] = new_metadata
                 if metadata_item == "notes":
@@ -78,8 +79,6 @@ class COD:
                 self.errors(f"{dataset_name}: resource {resource_name} not in metadata")
                 return None, update
             new_description = metadata[resource_name]
-            if new_description == "":
-                continue
             if new_description != hdx_description:
                 resource["description"] = new_description
                 update = True
@@ -113,6 +112,7 @@ class COD:
                         metadata_item,
                         "",
                         dataset[metadata_item],
+                        "",
                     ]
                 )
             for resource in dataset.get_resources():
@@ -124,6 +124,7 @@ class COD:
                         "resource_description",
                         resource["name"],
                         resource["description"],
+                        "",
                     ]
                 )
 
