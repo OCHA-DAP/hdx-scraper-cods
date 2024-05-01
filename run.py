@@ -8,10 +8,8 @@ from cods import COD
 from hdx.api.configuration import Configuration
 from hdx.data.hdxobject import HDXError
 from hdx.facades.keyword_arguments import facade
-from hdx.utilities.downloader import Download
 from hdx.utilities.errors_onexit import ErrorsOnExit
 from hdx.utilities.path import temp_dir
-from hdx.utilities.retriever import Retrieve
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ def parse_args():
 
 
 def main(
-    # gsheet_auth,
+    gsheet_auth,
     save,
     use_saved,
     **ignore,
@@ -54,30 +52,26 @@ def main(
 
     with ErrorsOnExit() as errors:
         with temp_dir() as temp_folder:
-            with Download() as downloader:
-                retriever = Retrieve(
-                    downloader, temp_folder, "saved_data", temp_folder, save, use_saved
-                )
-                configuration = Configuration.read()
-                cod = COD(retriever, errors)
-                dataset_names = cod.get_metadata(configuration["url"])
-                logger.info(f"Number of datasets to upload: {len(dataset_names)}")
-                for dataset_name in dataset_names:
-                    dataset, update = cod.generate_dataset(dataset_name)
-                    if dataset and update:
-                        try:
-                            dataset.create_in_hdx(
-                                hxl_update=False,
-                                updated_by_script="HDX Scraper: CODS",
-                                batch_mode="KEEP_OLD",
-                                ignore_fields=["num_of_rows", "resource:description"],
-                            )
-                        except HDXError as ex:
-                            errors.add(f"Dataset: {dataset_name}, error: {ex}")
+            configuration = Configuration.read()
+            cod = COD(temp_folder, errors, save, use_saved, gsheet_auth)
+            dataset_names = cod.get_metadata(configuration["url"])
+            logger.info(f"Number of datasets to upload: {len(dataset_names)}")
+            for dataset_name in dataset_names:
+                dataset, update = cod.generate_dataset(dataset_name)
+                if dataset and update:
+                    try:
+                        dataset.create_in_hdx(
+                            hxl_update=False,
+                            updated_by_script="HDX Scraper: CODS",
+                            batch_mode="KEEP_OLD",
+                            ignore_fields=["num_of_rows", "resource:description"],
+                        )
+                    except HDXError as ex:
+                        errors.add(f"Dataset: {dataset_name}, error: {ex}")
 
-                logger.info("Getting dataset info")
-                cod.get_dataset_info()
-                cod.write_to_gsheets(configuration["googlesheets"], gsheet_auth)
+            logger.info("Getting dataset info")
+            cod.get_dataset_info()
+            cod.write_to_gsheets(configuration["googlesheets"])
 
 
 if __name__ == "__main__":

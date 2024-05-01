@@ -1,18 +1,25 @@
 import gspread
 import json
 import logging
+from os.path import join
 
 from hdx.data.dataset import Dataset
-from hdx.utilities.dictandlist import dict_of_dicts_add
+from hdx.utilities.dictandlist import dict_of_dicts_add, read_list_from_csv, write_list_to_csv
 
 logger = logging.getLogger(__name__)
 
 
 class COD:
-    def __init__(self, retriever, errors):
-        self.retriever = retriever
-        self.metadata = {}
+    def __init__(self, temp_folder, errors, save, use_saved, gsheet_auth=None):
+        self.save = save
+        self.use_saved = use_saved
+        self.gsheet_auth = gsheet_auth
         self.errors = errors
+        if save:
+            self.folder = "saved_data"
+        else:
+            self.folder = temp_folder
+        self.metadata = {}
         self.dataset_info = [[
             "country",
             "theme",
@@ -23,32 +30,42 @@ class COD:
             "updated metadata value",
         ]]
 
-    def get_dataset_names(self, url, countries=None):
-        _, iterator = self.retriever.get_tabular_rows(url, format="csv", dict_form=True, headers=2)
-        dataset_names = []
-        for row in iterator:
-            country = row["country"]
-            if countries and country not in countries:
-                continue
-            dataset_name = row["dataset"]
-            if dataset_name not in dataset_names:
-                dataset_names.append(dataset_name)
-        return dataset_names
-
     def get_metadata(self, url, countries=None):
-        _, iterator = self.retriever.get_tabular_rows(url, format="csv", dict_form=True, headers=2)
+        if self.use_saved:
+            rows = read_list_from_csv(join(self.folder, "download_cod_metadata.csv"))
+        else:
+            info = json.loads(self.gsheet_auth)
+            scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+            gc = gspread.service_account_from_dict(info, scopes=scopes)
+            spreadsheet = gc.open_by_url(url)
+            tab = spreadsheet.worksheet("metadata")
+            rows = tab.get_all_values()
+        if self.save:
+            write_list_to_csv(join(self.folder, "download_cod_metadata.csv"), rows[1:])
 
-        for row in iterator:
-            dataset_name = row["dataset"]
-            country = row["country"]
+        headers = rows[1]
+        for row in rows[2:]:
+            dataset_name = row[headers.index("dataset")]
+            country = row[headers.index("country")]
             if countries and country not in countries:
                 continue
-            if not row["updated metadata value"] or row["updated metadata value"] == "":
+            if not row[headers.index("updated metadata value")] \
+                    or row[headers.index("updated metadata value")] == "":
                 continue
-            if not row["resource name"] or row["resource name"] == "":
-                dict_of_dicts_add(self.metadata, dataset_name, row["metadata item"], row["updated metadata value"])
+            if not row[headers.index("resource name")] or row[headers.index("resource name")] == "":
+                dict_of_dicts_add(
+                    self.metadata,
+                    dataset_name,
+                    row[headers.index("metadata item")],
+                    row[headers.index("updated metadata value")],
+                )
             else:
-                dict_of_dicts_add(self.metadata, dataset_name, row["resource name"], row["updated metadata value"])
+                dict_of_dicts_add(
+                    self.metadata,
+                    dataset_name,
+                    row[headers.index("resource name")],
+                    row[headers.index("updated metadata value")],
+                )
 
         return [{"name": dataset_name} for dataset_name in sorted(self.metadata)]
 
@@ -130,8 +147,8 @@ class COD:
                     ]
                 )
 
-    def write_to_gsheets(self, url, gsheet_auth):
-        info = json.loads(gsheet_auth)
+    def write_to_gsheets(self, url):
+        info = json.loads(self.gsheet_auth)
         scopes = ["https://www.googleapis.com/auth/spreadsheets"]
         gc = gspread.service_account_from_dict(info, scopes=scopes)
         spreadsheet = gc.open_by_url(url)
