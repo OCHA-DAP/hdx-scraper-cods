@@ -1,3 +1,5 @@
+import gspread
+import json
 import logging
 
 from hdx.data.dataset import Dataset
@@ -128,5 +130,13 @@ class COD:
                     ]
                 )
 
-    def write_to_gsheets(self):
-        return None
+    def write_to_gsheets(self, url, gsheet_auth):
+        info = json.loads(gsheet_auth)
+        scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+        gc = gspread.service_account_from_dict(info, scopes=scopes)
+        spreadsheet = gc.open_by_url(url)
+        tab = spreadsheet.worksheet("metadata")
+        tab.clear()
+        tab.update("A1", [["Do Not Edit"]])
+        tab.update("A2", self.dataset_info)
+        return

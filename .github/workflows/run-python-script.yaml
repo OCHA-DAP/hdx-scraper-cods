@@ -28,6 +28,7 @@ jobs:
         HDX_KEY: ${{ secrets.HDX_BOT_SCRAPERS_API_TOKEN }}
         PREPREFIX: ${{ secrets.PREPREFIX }}
         USER_AGENT: ${{ secrets.USER_AGENT }}
+        GSHEET_AUTH: ${{ secrets.GSHEET_AUTH }}
       run: |
         python run.py
     - name: Send mail
