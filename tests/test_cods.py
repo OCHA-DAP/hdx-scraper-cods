@@ -44,6 +44,8 @@ class TestCods:
             "cod-ps-dji": {
                 "cod_level": "cod-enhanced",
                 "notes": "Djibouti administrative level 0-1 2009 population statistics test description",
+                "start_date": "2009-06-01",
+                "end_date": "2009-06-30",
                 "dji_admpop_2009.xlsx": "Djibouti administrative level 0-1 2009 population statistics test",
                 "dji_admpop_adm0_2009.csv": "Djibouti administrative level 0 2009 population statistics test",
                 "dji_admpop_adm1_2009.csv": "Djibouti administrative level 1 2009 population statistics test",
@@ -79,6 +81,8 @@ class TestCods:
         assert update is True
         assert dataset["cod_level"] == "cod-enhanced"
         assert dataset["notes"] == "Djibouti administrative level 0-1 2009 population statistics test description"
+        assert dataset.get_time_period()["startdate_str"] == "2009-06-01T00:00:00+00:00"
+        assert dataset.get_time_period()["enddate_str"] == "2009-06-30T23:59:59+00:00"
         resources = dataset.get_resources()
         assert len(resources) == 3
         assert [r["description"] for r in resources] == [

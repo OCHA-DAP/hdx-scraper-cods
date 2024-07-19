@@ -77,11 +77,16 @@ class COD:
         if not dataset:
             return None, update
 
+        date_range = [None, None]
         for metadata_item in metadata:
+            new_metadata = metadata[metadata_item]
+            if metadata_item == "start_date":
+                date_range[0] = new_metadata
+            if metadata_item == "end_date":
+                date_range[1] = new_metadata
             if metadata_item not in dataset:
                 continue
             hdx_metadata = dataset[metadata_item]
-            new_metadata = metadata[metadata_item]
             if new_metadata != hdx_metadata:
                 dataset[metadata_item] = new_metadata
                 if metadata_item == "notes":
@@ -89,6 +94,10 @@ class COD:
                         "\n", "  \n"
                     )
                 update = True
+        old_time_period = dataset.get_time_period()
+        dataset.set_time_period(date_range[0], date_range[1])
+        if old_time_period != dataset.get_time_period():
+            update = True
 
         resources = dataset.get_resources()
         for resource in resources:
@@ -122,7 +131,13 @@ class COD:
             country = " | ".join(dataset.get_location_iso3s())
             dataset_name = dataset["name"]
 
-            for metadata_item in ["notes", "cod_level"]:
+            for metadata_item in ["notes", "cod_level", "start_date", "end_date"]:
+                if metadata_item == "start_date":
+                    value = dataset.get_time_period("%Y-%m-%d")["startdate_str"]
+                elif metadata_item == "end_date":
+                    value = dataset.get_time_period("%Y-%m-%d")["enddate_str"]
+                else:
+                    value = dataset.get(metadata_item)
                 self.dataset_info.append(
                     [
                         country,
@@ -130,7 +145,7 @@ class COD:
                         dataset_name,
                         metadata_item,
                         "",
-                        dataset[metadata_item],
+                        value,
                         "",
                     ]
                 )

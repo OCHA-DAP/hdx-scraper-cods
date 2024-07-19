@@ -6,6 +6,8 @@ DJI,PS,cod-ps-dji,notes,,"Djibouti administrative level 0-1 2009 population stat
  
  
  REFERENCE YEAR: 2009",Djibouti administrative level 0-1 2009 population statistics test description
+DJI,PS,cod-ps-dji,start_date,,2009-01-01,2009-06-01
+DJI,PS,cod-ps-dji,end_date,,2009-12-31,2009-06-30
 DJI,PS,cod-ps-dji,resource_description,dji_admpop_2009.xlsx,Djibouti administrative level 0-1 2009 population statistics,Djibouti administrative level 0-1 2009 population statistics test
 DJI,PS,cod-ps-dji,resource_description,dji_admpop_adm0_2009.csv,Djibouti administrative level 0 2009 population statistics,Djibouti administrative level 0 2009 population statistics test
 DJI,PS,cod-ps-dji,resource_description,dji_admpop_adm1_2009.csv,Djibouti administrative level 1 2009 population statistics,Djibouti administrative level 1 2009 population statistics test
